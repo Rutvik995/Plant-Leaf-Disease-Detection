@@ -28,10 +28,23 @@ document.addEventListener('DOMContentLoaded', () => {
     const top5List = document.getElementById('top5List');
     const allClassesList = document.getElementById('allClassesList');
     const btnToggleAll = document.getElementById('btnToggleAll');
+    const toggleAllText = document.getElementById('toggleAllText');
+    const toggleAllIcon = document.getElementById('toggleAllIcon');
     const allClassesWrapper = document.getElementById('allClassesWrapper');
     const classSearchInput = document.getElementById('classSearchInput');
     const specLatency = document.getElementById('specLatency');
     const btnPrintReport = document.getElementById('btnPrintReport');
+
+    // Library Modal Elements
+    const btnOpenLibrary = document.getElementById('btnOpenLibrary');
+    const cardCategories = document.getElementById('cardCategories');
+    const btnEmptyBrowseLibrary = document.getElementById('btnEmptyBrowseLibrary');
+    const libraryModal = document.getElementById('libraryModal');
+    const libraryBackdrop = document.getElementById('libraryBackdrop');
+    const btnCloseLibrary = document.getElementById('btnCloseLibrary');
+    const librarySearchInput = document.getElementById('librarySearchInput');
+    const cropFilterChips = document.getElementById('cropFilterChips');
+    const libraryGrid = document.getElementById('libraryGrid');
 
     // Camera Modal Elements
     const btnOpenCam = document.getElementById('btnOpenCam');
@@ -46,6 +59,24 @@ document.addEventListener('DOMContentLoaded', () => {
     let currentImageData = null;
     let cameraStream = null;
     let cachedAllClasses = [];
+    let allLibraryClasses = [];
+    let currentCropFilter = 'all';
+
+    // 1. Fetch all 39 classes immediately on startup
+    fetchClassesLibrary();
+
+    async function fetchClassesLibrary() {
+        try {
+            const resp = await fetch('/api/classes');
+            const data = await resp.json();
+            if (data && data.classes) {
+                allLibraryClasses = data.classes;
+                renderLibraryGrid(allLibraryClasses);
+            }
+        } catch (err) {
+            console.error('Failed to preload classes library:', err);
+        }
+    }
 
     // Drag & Drop Handling
     ['dragenter', 'dragover'].forEach(eventName => {
@@ -102,7 +133,7 @@ document.addEventListener('DOMContentLoaded', () => {
             btnAnalyze.disabled = false;
             btnClear.disabled = false;
 
-            // Automatically run diagnosis immediately upon selection!
+            // Automatically run diagnosis immediately upon selection
             runAnalysis();
         };
         reader.readAsDataURL(file);
@@ -122,6 +153,121 @@ document.addEventListener('DOMContentLoaded', () => {
         activeResults.classList.add('hidden');
         loadingState.classList.add('hidden');
         emptyResults.classList.remove('hidden');
+    }
+
+    // Disease Library Modal Handlers
+    const openLibrary = () => {
+        libraryModal.classList.remove('hidden');
+        if (allLibraryClasses.length === 0) {
+            fetchClassesLibrary();
+        } else {
+            filterAndRenderLibrary();
+        }
+        lucide.createIcons();
+    };
+
+    const closeLibrary = () => {
+        libraryModal.classList.add('hidden');
+    };
+
+    [btnOpenLibrary, cardCategories, btnEmptyBrowseLibrary].forEach(btn => {
+        if (btn) btn.addEventListener('click', openLibrary);
+    });
+
+    [btnCloseLibrary, libraryBackdrop].forEach(elem => {
+        if (elem) elem.addEventListener('click', closeLibrary);
+    });
+
+    // Close on Escape key
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+            closeLibrary();
+            closeCamera();
+        }
+    });
+
+    // Library Filter Chips
+    if (cropFilterChips) {
+        cropFilterChips.addEventListener('click', (e) => {
+            const chip = e.target.closest('.chip');
+            if (!chip) return;
+
+            cropFilterChips.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
+            chip.classList.add('active');
+            currentCropFilter = chip.getAttribute('data-crop');
+            filterAndRenderLibrary();
+        });
+    }
+
+    // Library Search Box
+    if (librarySearchInput) {
+        librarySearchInput.addEventListener('input', () => {
+            filterAndRenderLibrary();
+        });
+    }
+
+    function filterAndRenderLibrary() {
+        const query = (librarySearchInput ? librarySearchInput.value : '').toLowerCase().trim();
+        let filtered = allLibraryClasses;
+
+        if (currentCropFilter === 'Healthy') {
+            filtered = filtered.filter(c => c.status === 'Healthy');
+        } else if (currentCropFilter !== 'all') {
+            filtered = filtered.filter(c => c.plant.toLowerCase() === currentCropFilter.toLowerCase());
+        }
+
+        if (query) {
+            filtered = filtered.filter(c => 
+                c.name.toLowerCase().includes(query) ||
+                c.plant.toLowerCase().includes(query) ||
+                c.condition.toLowerCase().includes(query) ||
+                (c.description && c.description.toLowerCase().includes(query))
+            );
+        }
+
+        renderLibraryGrid(filtered);
+    }
+
+    function renderLibraryGrid(classes) {
+        if (!libraryGrid) return;
+        libraryGrid.innerHTML = '';
+
+        if (classes.length === 0) {
+            libraryGrid.innerHTML = `
+                <div style="grid-column: 1 / -1; text-align: center; padding: 40px; color: var(--text-dim);">
+                    <p>No plant diseases match your search criteria.</p>
+                </div>
+            `;
+            return;
+        }
+
+        classes.forEach(c => {
+            const card = document.createElement('div');
+            card.className = 'library-card';
+
+            const isHealthy = c.status === 'Healthy';
+            const statusClass = isHealthy ? 'healthy' : 'infected';
+            const sevColor = isHealthy ? 'var(--emerald)' : (c.severity === 'High' || c.severity === 'Critical' ? 'var(--rose)' : 'var(--amber)');
+
+            card.innerHTML = `
+                <div class="library-card-header">
+                    <span class="library-card-crop">${c.plant}</span>
+                    <span class="status-pill ${statusClass}" style="font-size: 0.68rem; padding: 2px 8px;">
+                        <span class="dot"></span> ${c.status}
+                    </span>
+                </div>
+                <h4 class="library-card-title">${c.condition}</h4>
+                <p class="library-card-desc">${c.description || 'Diagnosis and identification for ' + c.name}</p>
+                <div class="library-card-footer">
+                    <span style="font-size: 0.72rem; font-weight: 600; color: ${sevColor};">
+                        ${isHealthy ? 'Healthy Leaf' : c.severity + ' Severity'}
+                    </span>
+                    <span style="font-size: 0.72rem; color: var(--text-dim);">ID #${c.class_index}</span>
+                </div>
+            `;
+            libraryGrid.appendChild(card);
+        });
+        lucide.createIcons();
     }
 
     // Camera Handlers
@@ -175,8 +321,6 @@ document.addEventListener('DOMContentLoaded', () => {
         btnClear.disabled = false;
 
         closeCamera();
-
-        // Immediately auto-analyze the captured frame
         runAnalysis();
     });
 
@@ -274,7 +418,6 @@ document.addEventListener('DOMContentLoaded', () => {
         btnAnalyze.disabled = false;
         btnClear.disabled = false;
 
-        // Automatically trigger diagnosis
         runAnalysis();
     }
 
@@ -308,7 +451,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 return;
             }
 
-            // Render all details
             renderResults(data);
 
         } catch (err) {
@@ -327,7 +469,6 @@ document.addEventListener('DOMContentLoaded', () => {
         const pred = data.prediction;
         const perf = data.performance;
 
-        // Top match header
         diseaseTitle.textContent = pred.name;
         plantCategory.textContent = `Crop: ${pred.plant} | Status: ${pred.condition}`;
 
@@ -385,7 +526,7 @@ document.addEventListener('DOMContentLoaded', () => {
             top5List.appendChild(row);
         });
 
-        // Cache all classes for the 39-class explorer
+        // Cache all classes for the 39-class dropdown explorer
         cachedAllClasses = data.all_classes || [];
         renderAllClasses(cachedAllClasses);
 
@@ -398,39 +539,60 @@ document.addEventListener('DOMContentLoaded', () => {
         lucide.createIcons();
     }
 
-    // Render 39 Classes List
+    // Render 39 Classes List inside Results Card
     function renderAllClasses(classes) {
+        if (!allClassesList) return;
         allClassesList.innerHTML = '';
         classes.forEach(c => {
             const chip = document.createElement('div');
             chip.className = 'class-chip';
             chip.innerHTML = `
                 <span>${c.name}</span>
-                <strong style="color: var(--cyan); margin-left: auto;">${c.probability}%</strong>
+                <strong style="color: var(--cyan); margin-left: auto;">${c.probability !== undefined ? c.probability + '%' : ''}</strong>
             `;
             allClassesList.appendChild(chip);
         });
     }
 
-    // 39 Classes Toggle
-    btnToggleAll.addEventListener('click', () => {
-        allClassesWrapper.classList.toggle('hidden');
-        const isHidden = allClassesWrapper.classList.contains('hidden');
-        btnToggleAll.innerHTML = isHidden 
-            ? 'Show All 39 Classes <i data-lucide="chevron-down"></i>' 
-            : 'Hide Classes <i data-lucide="chevron-up"></i>';
-        lucide.createIcons();
-    });
+    // 39 Classes Toggle inside Results Card
+    if (btnToggleAll) {
+        btnToggleAll.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
 
-    // 39 Classes Search Filter
-    classSearchInput.addEventListener('input', (e) => {
-        const query = e.target.value.toLowerCase().trim();
-        const filtered = cachedAllClasses.filter(c => c.name.toLowerCase().includes(query));
-        renderAllClasses(filtered);
-    });
+            allClassesWrapper.classList.toggle('hidden');
+            const isHidden = allClassesWrapper.classList.contains('hidden');
+
+            if (toggleAllText) {
+                toggleAllText.textContent = isHidden ? 'Show All 39 Classes' : 'Hide Classes';
+            }
+            if (toggleAllIcon) {
+                toggleAllIcon.setAttribute('data-lucide', isHidden ? 'chevron-down' : 'chevron-up');
+            }
+
+            // If empty, populate with library data
+            if (!cachedAllClasses || cachedAllClasses.length === 0) {
+                renderAllClasses(allLibraryClasses);
+            }
+
+            lucide.createIcons();
+        });
+    }
+
+    // 39 Classes Search Filter inside Results Card
+    if (classSearchInput) {
+        classSearchInput.addEventListener('input', (e) => {
+            const query = e.target.value.toLowerCase().trim();
+            const source = (cachedAllClasses && cachedAllClasses.length > 0) ? cachedAllClasses : allLibraryClasses;
+            const filtered = source.filter(c => c.name.toLowerCase().includes(query));
+            renderAllClasses(filtered);
+        });
+    }
 
     // Print / Download Report
-    btnPrintReport.addEventListener('click', () => {
-        window.print();
-    });
+    if (btnPrintReport) {
+        btnPrintReport.addEventListener('click', () => {
+            window.print();
+        });
+    }
 });

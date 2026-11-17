@@ -32,11 +32,14 @@
             </div>
 
             <div class="model-badge-container">
+                <button type="button" class="btn btn-library-pill" id="btnOpenLibrary" title="Browse all 39 detectable plant diseases">
+                    <i data-lucide="book-open"></i> Browse All 39 Diseases
+                </button>
                 <span class="badge badge-accent">
                     <i data-lucide="cpu"></i> MobileNetV2
                 </span>
                 <span class="badge badge-success">
-                    <i data-lucide="check-circle-2"></i> 97.42% Benchmark Accuracy
+                    <i data-lucide="check-circle-2"></i> 97.42% Accuracy
                 </span>
             </div>
         </header>
@@ -55,7 +58,7 @@
                 <div class="metric-icon icon-cyan"><i data-lucide="layers"></i></div>
                 <div class="metric-data">
                     <span class="metric-value">2,307,943</span>
-                    <span class="metric-label">Model Parameters (MobileNetV2)</span>
+                    <span class="metric-label">Parameters (MobileNetV2)</span>
                 </div>
             </div>
 
@@ -63,15 +66,16 @@
                 <div class="metric-icon icon-amber"><i data-lucide="scan"></i></div>
                 <div class="metric-data">
                     <span class="metric-value">160 × 160 px</span>
-                    <span class="metric-label">Multi-Spectral Input Tensor</span>
+                    <span class="metric-label">RGB Input Tensor</span>
                 </div>
             </div>
 
-            <div class="metric-card">
+            <!-- Clickable 39 Categories Card -->
+            <div class="metric-card metric-card-interactive" id="cardCategories" role="button" tabindex="0" title="Click to view all 39 detectable diseases">
                 <div class="metric-icon icon-purple"><i data-lucide="grid"></i></div>
                 <div class="metric-data">
-                    <span class="metric-value">39 Categories</span>
-                    <span class="metric-label">Crops & Disease Classes</span>
+                    <span class="metric-value">39 Categories <i data-lucide="arrow-up-right" class="icon-inline"></i></span>
+                    <span class="metric-label">Click to Explore All Diseases</span>
                 </div>
             </div>
         </section>
@@ -82,7 +86,7 @@
             <section class="card upload-section">
                 <div class="card-header">
                     <h2><i data-lucide="image-plus"></i> Select Plant Leaf Image</h2>
-                    <p>Upload a clear leaf photo or snap one directly using your camera. The AI will immediately detect diseases and recommend treatments.</p>
+                    <p>Upload a leaf photo or capture one with your camera. The AI will immediately scan and diagnose the disease.</p>
                 </div>
 
                 <!-- Dropzone Area -->
@@ -113,7 +117,7 @@
                         <div class="scanning-badge hidden" id="scanningBadge">
                             <i data-lucide="scan"></i> AI Analyzing Leaf...
                         </div>
-                        <button type="button" class="btn-remove" id="btnRemove" title="Remove and select another image">
+                        <button type="button" class="btn-remove" id="btnRemove" title="Remove image">
                             <i data-lucide="x"></i>
                         </button>
                     </div>
@@ -131,7 +135,7 @@
 
                 <!-- Fast Demo Sample Leaves -->
                 <div class="sample-section">
-                    <span class="sample-title"><i data-lucide="sparkles"></i> Quick Test Sample Leaves:</span>
+                    <span class="sample-title"><i data-lucide="sparkles"></i> 1-Click Test Sample Leaves:</span>
                     <div class="sample-buttons">
                         <button type="button" class="btn-sample" data-sample="apple_scab">
                             🍏 Apple Scab
@@ -159,6 +163,10 @@
                     <div class="empty-icon"><i data-lucide="microscope"></i></div>
                     <h3>Waiting for Leaf Image</h3>
                     <p>Select or capture a leaf photo on the left. The neural network will immediately scan and generate a complete diagnostic report.</p>
+                    
+                    <button type="button" class="btn btn-secondary btn-sm" id="btnEmptyBrowseLibrary" style="margin-top: 18px;">
+                        <i data-lucide="book-open"></i> Browse All 39 Supported Diseases
+                    </button>
                 </div>
 
                 <!-- Loading State Indicator -->
@@ -223,7 +231,8 @@
                         <div class="breakdown-header">
                             <h4><i data-lucide="bar-chart-3"></i> Top 5 Class Probabilities</h4>
                             <button type="button" class="btn-toggle-all" id="btnToggleAll">
-                                Show All 39 Classes <i data-lucide="chevron-down"></i>
+                                <span id="toggleAllText">Show All 39 Classes</span>
+                                <i data-lucide="chevron-down" id="toggleAllIcon"></i>
                             </button>
                         </div>
 
@@ -235,7 +244,7 @@
                         <div class="all-classes-wrapper hidden" id="allClassesWrapper">
                             <div class="search-input-wrapper">
                                 <i data-lucide="search"></i>
-                                <input type="text" id="classSearchInput" placeholder="Filter through 39 classes...">
+                                <input type="text" id="classSearchInput" placeholder="Filter through 39 classes by crop or disease...">
                             </div>
                             <div class="all-classes-list" id="allClassesList">
                                 <!-- Populated dynamically -->
@@ -260,7 +269,7 @@
                             </div>
                             <div class="spec-item">
                                 <span class="spec-label">Classes Monitored</span>
-                                <span class="spec-val">39 Crop Categories</span>
+                                <span class="spec-val">39 Categories</span>
                             </div>
                         </div>
 
@@ -274,13 +283,51 @@
             </section>
         </main>
 
+        <!-- Full Disease Library Modal (Always Accessible) -->
+        <div class="library-modal hidden" id="libraryModal">
+            <div class="library-modal-backdrop" id="libraryBackdrop"></div>
+            <div class="library-dialog">
+                <div class="library-header">
+                    <div class="library-title-area">
+                        <h3><i data-lucide="book-open"></i> Plant Disease Library (All 39 Classes)</h3>
+                        <p>Browse all detectable plant diseases, symptoms, pathogen details, and remedies.</p>
+                    </div>
+                    <button type="button" class="btn-close-modal" id="btnCloseLibrary" title="Close">
+                        <i data-lucide="x"></i>
+                    </button>
+                </div>
+
+                <!-- Search and Filter Bar -->
+                <div class="library-filter-bar">
+                    <div class="library-search-box">
+                        <i data-lucide="search"></i>
+                        <input type="text" id="librarySearchInput" placeholder="Search crop (Tomato, Apple, Potato) or disease...">
+                    </div>
+                    <div class="library-chips" id="cropFilterChips">
+                        <button type="button" class="chip active" data-crop="all">All (39)</button>
+                        <button type="button" class="chip" data-crop="Tomato">Tomato</button>
+                        <button type="button" class="chip" data-crop="Apple">Apple</button>
+                        <button type="button" class="chip" data-crop="Potato">Potato</button>
+                        <button type="button" class="chip" data-crop="Corn">Corn</button>
+                        <button type="button" class="chip" data-crop="Grape">Grape</button>
+                        <button type="button" class="chip" data-crop="Healthy">Healthy Only</button>
+                    </div>
+                </div>
+
+                <!-- Library Grid of Classes -->
+                <div class="library-grid" id="libraryGrid">
+                    <!-- Populated dynamically via JS -->
+                </div>
+            </div>
+        </div>
+
         <!-- Camera Capture Modal -->
         <div class="camera-modal hidden" id="cameraModal">
             <div class="camera-modal-backdrop" id="cameraBackdrop"></div>
             <div class="camera-dialog">
                 <div class="camera-header">
                     <h3><i data-lucide="camera"></i> Leaf Camera Scanner</h3>
-                    <button type="button" class="btn-close-modal" id="btnCloseCam">
+                    <button type="button" class="btn-close-modal" id="btnCloseCam" title="Close">
                         <i data-lucide="x"></i>
                     </button>
                 </div>

@@ -51,6 +51,25 @@ def get_model_info():
     return jsonify(info)
 
 
+@app.route("/api/classes", methods=["GET"])
+def get_classes():
+    """Returns the complete list of 39 plant species and disease classes."""
+    classes_list = []
+    for idx, info in sorted(PLANT_CLASSES.items()):
+        classes_list.append({
+            "class_index": idx,
+            "name": info.get("name", f"Class {idx}"),
+            "plant": info.get("plant", "Unknown"),
+            "condition": info.get("condition", "Unknown"),
+            "status": info.get("status", "Unknown"),
+            "severity": info.get("severity", "Unknown"),
+            "description": info.get("description", ""),
+            "symptoms": info.get("symptoms", []),
+            "treatment": info.get("treatment", "")
+        })
+    return jsonify({"classes": classes_list, "total": len(classes_list)})
+
+
 @app.route("/api/predict", methods=["POST"])
 def predict():
     if model is None:
