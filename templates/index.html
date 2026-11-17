@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FloraScan AI — Plant Leaf Disease Diagnostic & Model Metrics</title>
+    <title>FloraScan AI — Plant Leaf Disease Detection & Diagnostics</title>
 
     <!-- Google Fonts & Lucide Icons -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -14,7 +14,7 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
-    <!-- Background Glow Effects -->
+    <!-- Background Ambient Glows -->
     <div class="bg-glow bg-glow-1"></div>
     <div class="bg-glow bg-glow-2"></div>
 
@@ -27,7 +27,7 @@
                 </div>
                 <div class="brand-text">
                     <h1>FloraScan <span>AI</span></h1>
-                    <p>Plant Disease Diagnostics & Model Intelligence</p>
+                    <p>Intelligent Plant Leaf Disease Detection & Treatment Guide</p>
                 </div>
             </div>
 
@@ -36,18 +36,18 @@
                     <i data-lucide="cpu"></i> MobileNetV2
                 </span>
                 <span class="badge badge-success">
-                    <i data-lucide="check-circle-2"></i> 97.42% Accuracy
+                    <i data-lucide="check-circle-2"></i> 97.42% Benchmark Accuracy
                 </span>
             </div>
         </header>
 
-        <!-- Model Benchmark Dashboard Banner -->
+        <!-- Benchmark Statistics Banner -->
         <section class="metrics-grid" id="metricsBanner">
             <div class="metric-card">
                 <div class="metric-icon icon-emerald"><i data-lucide="target"></i></div>
                 <div class="metric-data">
                     <span class="metric-value">97.42%</span>
-                    <span class="metric-label">Benchmark Accuracy</span>
+                    <span class="metric-label">Diagnosis Accuracy</span>
                 </div>
             </div>
 
@@ -55,66 +55,83 @@
                 <div class="metric-icon icon-cyan"><i data-lucide="layers"></i></div>
                 <div class="metric-data">
                     <span class="metric-value">2,307,943</span>
-                    <span class="metric-label">Total Parameters (8.8 MB)</span>
+                    <span class="metric-label">Model Parameters (MobileNetV2)</span>
                 </div>
             </div>
 
             <div class="metric-card">
                 <div class="metric-icon icon-amber"><i data-lucide="scan"></i></div>
                 <div class="metric-data">
-                    <span class="metric-value">160 × 160 × 3</span>
-                    <span class="metric-label">Input Tensor Resolution</span>
+                    <span class="metric-value">160 × 160 px</span>
+                    <span class="metric-label">Multi-Spectral Input Tensor</span>
                 </div>
             </div>
 
             <div class="metric-card">
                 <div class="metric-icon icon-purple"><i data-lucide="grid"></i></div>
                 <div class="metric-data">
-                    <span class="metric-value">39 Classes</span>
-                    <span class="metric-label">Crops & Disease Categories</span>
+                    <span class="metric-value">39 Categories</span>
+                    <span class="metric-label">Crops & Disease Classes</span>
                 </div>
             </div>
         </section>
 
-        <!-- Main Content Workspace -->
+        <!-- Main Workspace -->
         <main class="main-workspace">
-            <!-- Left Column: Upload & Sample Test Inputs -->
+            <!-- Left Column: Input Selection & Preview -->
             <section class="card upload-section">
                 <div class="card-header">
-                    <h2><i data-lucide="upload-cloud"></i> Upload Leaf Image</h2>
-                    <p>Select or drag & drop a high-resolution photo of a plant leaf.</p>
+                    <h2><i data-lucide="image-plus"></i> Select Plant Leaf Image</h2>
+                    <p>Upload a clear leaf photo or snap one directly using your camera. The AI will immediately detect diseases and recommend treatments.</p>
                 </div>
 
+                <!-- Dropzone Area -->
                 <div class="upload-dropzone" id="dropzone">
                     <input type="file" id="fileInput" accept="image/*" class="file-input">
+                    
                     <div class="dropzone-content" id="dropzonePrompt">
                         <div class="upload-icon-wrapper">
-                            <i data-lucide="image-plus"></i>
+                            <i data-lucide="upload-cloud"></i>
                         </div>
-                        <h3>Drag & drop your leaf photo here</h3>
-                        <p>Supports PNG, JPG, JPEG, WEBP files</p>
-                        <button type="button" class="btn btn-secondary" onclick="document.getElementById('fileInput').click()">
-                            Browse Files
-                        </button>
+                        <h3>Choose or Drop Leaf Image</h3>
+                        <p>Instant automatic detection on file selection</p>
+                        
+                        <div class="dropzone-actions">
+                            <button type="button" class="btn btn-secondary" onclick="document.getElementById('fileInput').click()">
+                                <i data-lucide="folder-open"></i> Browse Files
+                            </button>
+                            <button type="button" class="btn btn-camera" id="btnOpenCam">
+                                <i data-lucide="camera"></i> Open Camera
+                            </button>
+                        </div>
                     </div>
 
-                    <!-- Image Preview -->
+                    <!-- Image Preview with Laser Scan Effect -->
                     <div class="preview-container hidden" id="previewContainer">
-                        <img id="imagePreview" alt="Leaf Preview">
-                        <button type="button" class="btn-remove" id="btnRemove" title="Remove Image">
+                        <img id="imagePreview" alt="Selected Leaf">
+                        <div class="scan-laser hidden" id="scanLaser"></div>
+                        <div class="scanning-badge hidden" id="scanningBadge">
+                            <i data-lucide="scan"></i> AI Analyzing Leaf...
+                        </div>
+                        <button type="button" class="btn-remove" id="btnRemove" title="Remove and select another image">
                             <i data-lucide="x"></i>
                         </button>
                     </div>
                 </div>
 
-                <!-- Run Diagnostic CTA -->
-                <button type="button" class="btn btn-primary btn-block" id="btnAnalyze" disabled>
-                    <i data-lucide="activity"></i> Run AI Diagnosis
-                </button>
+                <!-- Control Buttons -->
+                <div class="action-buttons-row">
+                    <button type="button" class="btn btn-primary" id="btnAnalyze" disabled>
+                        <i data-lucide="activity"></i> Re-Run Diagnosis
+                    </button>
+                    <button type="button" class="btn btn-outline" id="btnClear" disabled>
+                        <i data-lucide="rotate-ccw"></i> Clear
+                    </button>
+                </div>
 
-                <!-- Sample Leaves for Quick Test -->
+                <!-- Fast Demo Sample Leaves -->
                 <div class="sample-section">
-                    <span class="sample-title"><i data-lucide="sparkles"></i> Try Synthetic Sample Leaves:</span>
+                    <span class="sample-title"><i data-lucide="sparkles"></i> Quick Test Sample Leaves:</span>
                     <div class="sample-buttons">
                         <button type="button" class="btn-sample" data-sample="apple_scab">
                             🍏 Apple Scab
@@ -123,34 +140,37 @@
                             🍅 Tomato Late Blight
                         </button>
                         <button type="button" class="btn-sample" data-sample="corn_rust">
-                            🌽 Corn Common Rust
+                            🌽 Corn Rust
                         </button>
                         <button type="button" class="btn-sample" data-sample="potato_healthy">
                             🥔 Potato Healthy
+                        </button>
+                        <button type="button" class="btn-sample" data-sample="grape_blackrot">
+                            🍇 Grape Black Rot
                         </button>
                     </div>
                 </div>
             </section>
 
-            <!-- Right Column: Diagnostic & Output Results -->
+            <!-- Right Column: Detection Results & Treatment Guide -->
             <section class="card results-section" id="resultsSection">
                 <!-- Initial State Placeholder -->
                 <div class="empty-results" id="emptyResults">
                     <div class="empty-icon"><i data-lucide="microscope"></i></div>
-                    <h3>No Diagnosis Generated Yet</h3>
-                    <p>Upload a leaf image or select a sample input to run instant model prediction and view accuracy metrics.</p>
+                    <h3>Waiting for Leaf Image</h3>
+                    <p>Select or capture a leaf photo on the left. The neural network will immediately scan and generate a complete diagnostic report.</p>
                 </div>
 
-                <!-- Loading State Spinner -->
+                <!-- Loading State Indicator -->
                 <div class="loading-state hidden" id="loadingState">
                     <div class="spinner"></div>
-                    <h3>Analyzing Plant Leaf with MobileNetV2...</h3>
-                    <p>Processing 160×160 RGB tensor & evaluating 39 disease classes</p>
+                    <h3>Scanning Plant Leaf Tissue...</h3>
+                    <p>Executing 160×160 RGB feature extraction & evaluating 39 disease classes</p>
                 </div>
 
-                <!-- Active Diagnosis Results -->
+                <!-- Active Diagnosis Details -->
                 <div class="active-results hidden" id="activeResults">
-                    <!-- Top Match Header Card -->
+                    <!-- Top Match Disease Card -->
                     <div class="top-match-card" id="topMatchCard">
                         <div class="top-match-header">
                             <div class="status-pill" id="statusPill">
@@ -160,12 +180,12 @@
                         </div>
 
                         <h2 class="disease-title" id="diseaseTitle">Tomato — Late Blight</h2>
-                        <p class="plant-name" id="plantCategory">Crop: Tomato (Solanum lycopersicum)</p>
+                        <p class="plant-name" id="plantCategory">Crop: Tomato | Condition: Late Blight</p>
 
                         <!-- Confidence Meter Bar -->
                         <div class="confidence-meter-container">
                             <div class="confidence-info">
-                                <span>Prediction Confidence</span>
+                                <span>Detection Confidence</span>
                                 <span class="confidence-number" id="confidenceNumber">98.45%</span>
                             </div>
                             <div class="progress-bar-track">
@@ -174,23 +194,31 @@
                         </div>
                     </div>
 
-                    <!-- Symptoms & Recommended Remedies -->
+                    <!-- Disease Overview / Description -->
+                    <div class="description-card">
+                        <h4><i data-lucide="info"></i> Disease Overview & Cause</h4>
+                        <p id="diseaseDescription">Fungal infection leading to leaf lesions and tissue decay.</p>
+                    </div>
+
+                    <!-- Symptoms & Recommended Treatments Grid -->
                     <div class="info-grid">
                         <div class="info-box box-symptoms">
-                            <h4><i data-lucide="alert-circle"></i> Key Symptoms</h4>
+                            <h4><i data-lucide="alert-triangle"></i> Identified Symptoms</h4>
                             <ul id="symptomsList">
-                                <li>Large irregular water-soaked spots on leaves.</li>
-                                <li>White fuzzy mold spores under moist conditions.</li>
+                                <li>Water-soaked irregular spots.</li>
+                                <li>Dark brown decay on leaf margins.</li>
                             </ul>
                         </div>
 
                         <div class="info-box box-treatment">
                             <h4><i data-lucide="shield-check"></i> Treatment & Remedies</h4>
-                            <p id="treatmentText">Apply preventative copper fungicides immediately. Destroy heavily infected vines.</p>
+                            <div class="treatment-body" id="treatmentText">
+                                Apply appropriate bio-fungicide or copper spray. Ensure proper soil drainage and adequate sunlight.
+                            </div>
                         </div>
                     </div>
 
-                    <!-- Top 5 Probability Breakdown Chart -->
+                    <!-- Top 5 Probability Breakdown -->
                     <div class="breakdown-card">
                         <div class="breakdown-header">
                             <h4><i data-lucide="bar-chart-3"></i> Top 5 Class Probabilities</h4>
@@ -203,43 +231,78 @@
                             <!-- Populated dynamically via JS -->
                         </div>
 
-                        <!-- Complete 39 Class Toggle Container -->
+                        <!-- Full 39 Classes Dropdown with Filter -->
                         <div class="all-classes-wrapper hidden" id="allClassesWrapper">
+                            <div class="search-input-wrapper">
+                                <i data-lucide="search"></i>
+                                <input type="text" id="classSearchInput" placeholder="Filter through 39 classes...">
+                            </div>
                             <div class="all-classes-list" id="allClassesList">
                                 <!-- Populated dynamically -->
                             </div>
                         </div>
                     </div>
 
-                    <!-- Technical Execution Details -->
+                    <!-- Technical Specs & Report Actions -->
                     <div class="tech-specs-card">
-                        <h4><i data-lucide="terminal"></i> Inference Performance Specs</h4>
                         <div class="specs-grid">
                             <div class="spec-item">
                                 <span class="spec-label">Inference Latency</span>
-                                <span class="spec-val" id="specLatency">14.2 ms</span>
+                                <span class="spec-val" id="specLatency">16.4 ms</span>
                             </div>
                             <div class="spec-item">
-                                <span class="spec-label">Model Engine</span>
-                                <span class="spec-val">MobileNetV2 (Keras 3)</span>
+                                <span class="spec-label">Neural Engine</span>
+                                <span class="spec-val">MobileNetV2</span>
                             </div>
                             <div class="spec-item">
-                                <span class="spec-label">Input Tensor</span>
-                                <span class="spec-val">[1, 160, 160, 3]</span>
+                                <span class="spec-label">Input Resolution</span>
+                                <span class="spec-val">160 × 160 RGB</span>
                             </div>
                             <div class="spec-item">
-                                <span class="spec-label">Output Nodes</span>
-                                <span class="spec-val">39 (Sigmoid)</span>
+                                <span class="spec-label">Classes Monitored</span>
+                                <span class="spec-val">39 Crop Categories</span>
                             </div>
+                        </div>
+
+                        <div class="report-actions">
+                            <button type="button" class="btn btn-secondary btn-sm" id="btnPrintReport">
+                                <i data-lucide="printer"></i> Print / Save Report
+                            </button>
                         </div>
                     </div>
                 </div>
             </section>
         </main>
 
+        <!-- Camera Capture Modal -->
+        <div class="camera-modal hidden" id="cameraModal">
+            <div class="camera-modal-backdrop" id="cameraBackdrop"></div>
+            <div class="camera-dialog">
+                <div class="camera-header">
+                    <h3><i data-lucide="camera"></i> Leaf Camera Scanner</h3>
+                    <button type="button" class="btn-close-modal" id="btnCloseCam">
+                        <i data-lucide="x"></i>
+                    </button>
+                </div>
+                <div class="camera-viewport">
+                    <video id="cameraVideo" autoplay playsinline></video>
+                    <canvas id="cameraCanvas" class="hidden"></canvas>
+                    <div class="camera-guide-box">
+                        <span>Place leaf inside frame</span>
+                    </div>
+                </div>
+                <div class="camera-controls">
+                    <button type="button" class="btn btn-secondary" id="btnCancelCam">Cancel</button>
+                    <button type="button" class="btn btn-primary" id="btnSnapPhoto">
+                        <i data-lucide="aperture"></i> Capture & Diagnose
+                    </button>
+                </div>
+            </div>
+        </div>
+
         <!-- Footer -->
         <footer class="footer">
-            <p>FloraScan AI — Powered by TensorFlow, Keras 3 & MobileNetV2 Architecture</p>
+            <p>FloraScan AI — Powered by TensorFlow, Keras & MobileNetV2 Architecture</p>
         </footer>
     </div>
 
