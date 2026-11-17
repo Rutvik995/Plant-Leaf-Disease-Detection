@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FloraScan AI — Plant Leaf Disease Diagnostic & Model Metrics</title>
+
+    <!-- Google Fonts & Lucide Icons -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <!-- Background Glow Effects -->
+    <div class="bg-glow bg-glow-1"></div>
+    <div class="bg-glow bg-glow-2"></div>
+
+    <div class="app-container">
+        <!-- Navigation Header -->
+        <header class="navbar">
+            <div class="brand">
+                <div class="brand-icon">
+                    <i data-lucide="leaf"></i>
+                </div>
+                <div class="brand-text">
+                    <h1>FloraScan <span>AI</span></h1>
+                    <p>Plant Disease Diagnostics & Model Intelligence</p>
+                </div>
+            </div>
+
+            <div class="model-badge-container">
+                <span class="badge badge-accent">
+                    <i data-lucide="cpu"></i> MobileNetV2
+                </span>
+                <span class="badge badge-success">
+                    <i data-lucide="check-circle-2"></i> 97.42% Accuracy
+                </span>
+            </div>
+        </header>
+
+        <!-- Model Benchmark Dashboard Banner -->
+        <section class="metrics-grid" id="metricsBanner">
+            <div class="metric-card">
+                <div class="metric-icon icon-emerald"><i data-lucide="target"></i></div>
+                <div class="metric-data">
+                    <span class="metric-value">97.42%</span>
+                    <span class="metric-label">Benchmark Accuracy</span>
+                </div>
+            </div>
+
+            <div class="metric-card">
+                <div class="metric-icon icon-cyan"><i data-lucide="layers"></i></div>
+                <div class="metric-data">
+                    <span class="metric-value">2,307,943</span>
+                    <span class="metric-label">Total Parameters (8.8 MB)</span>
+                </div>
+            </div>
+
+            <div class="metric-card">
+                <div class="metric-icon icon-amber"><i data-lucide="scan"></i></div>
+                <div class="metric-data">
+                    <span class="metric-value">160 × 160 × 3</span>
+                    <span class="metric-label">Input Tensor Resolution</span>
+                </div>
+            </div>
+
+            <div class="metric-card">
+                <div class="metric-icon icon-purple"><i data-lucide="grid"></i></div>
+                <div class="metric-data">
+                    <span class="metric-value">39 Classes</span>
+                    <span class="metric-label">Crops & Disease Categories</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- Main Content Workspace -->
+        <main class="main-workspace">
+            <!-- Left Column: Upload & Sample Test Inputs -->
+            <section class="card upload-section">
+                <div class="card-header">
+                    <h2><i data-lucide="upload-cloud"></i> Upload Leaf Image</h2>
+                    <p>Select or drag & drop a high-resolution photo of a plant leaf.</p>
+                </div>
+
+                <div class="upload-dropzone" id="dropzone">
+                    <input type="file" id="fileInput" accept="image/*" class="file-input">
+                    <div class="dropzone-content" id="dropzonePrompt">
+                        <div class="upload-icon-wrapper">
+                            <i data-lucide="image-plus"></i>
+                        </div>
+                        <h3>Drag & drop your leaf photo here</h3>
+                        <p>Supports PNG, JPG, JPEG, WEBP files</p>
+                        <button type="button" class="btn btn-secondary" onclick="document.getElementById('fileInput').click()">
+                            Browse Files
+                        </button>
+                    </div>
+
+                    <!-- Image Preview -->
+                    <div class="preview-container hidden" id="previewContainer">
+                        <img id="imagePreview" alt="Leaf Preview">
+                        <button type="button" class="btn-remove" id="btnRemove" title="Remove Image">
+                            <i data-lucide="x"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Run Diagnostic CTA -->
+                <button type="button" class="btn btn-primary btn-block" id="btnAnalyze" disabled>
+                    <i data-lucide="activity"></i> Run AI Diagnosis
+                </button>
+
+                <!-- Sample Leaves for Quick Test -->
+                <div class="sample-section">
+                    <span class="sample-title"><i data-lucide="sparkles"></i> Try Synthetic Sample Leaves:</span>
+                    <div class="sample-buttons">
+                        <button type="button" class="btn-sample" data-sample="apple_scab">
+                            🍏 Apple Scab
+                        </button>
+                        <button type="button" class="btn-sample" data-sample="tomato_blight">
+                            🍅 Tomato Late Blight
+                        </button>
+                        <button type="button" class="btn-sample" data-sample="corn_rust">
+                            🌽 Corn Common Rust
+                        </button>
+                        <button type="button" class="btn-sample" data-sample="potato_healthy">
+                            🥔 Potato Healthy
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Right Column: Diagnostic & Output Results -->
+            <section class="card results-section" id="resultsSection">
+                <!-- Initial State Placeholder -->
+                <div class="empty-results" id="emptyResults">
+                    <div class="empty-icon"><i data-lucide="microscope"></i></div>
+                    <h3>No Diagnosis Generated Yet</h3>
+                    <p>Upload a leaf image or select a sample input to run instant model prediction and view accuracy metrics.</p>
+                </div>
+
+                <!-- Loading State Spinner -->
+                <div class="loading-state hidden" id="loadingState">
+                    <div class="spinner"></div>
+                    <h3>Analyzing Plant Leaf with MobileNetV2...</h3>
+                    <p>Processing 160×160 RGB tensor & evaluating 39 disease classes</p>
+                </div>
+
+                <!-- Active Diagnosis Results -->
+                <div class="active-results hidden" id="activeResults">
+                    <!-- Top Match Header Card -->
+                    <div class="top-match-card" id="topMatchCard">
+                        <div class="top-match-header">
+                            <div class="status-pill" id="statusPill">
+                                <span class="dot"></span> <span id="statusText">Infected</span>
+                            </div>
+                            <div class="severity-pill" id="severityPill">High Severity</div>
+                        </div>
+
+                        <h2 class="disease-title" id="diseaseTitle">Tomato — Late Blight</h2>
+                        <p class="plant-name" id="plantCategory">Crop: Tomato (Solanum lycopersicum)</p>
+
+                        <!-- Confidence Meter Bar -->
+                        <div class="confidence-meter-container">
+                            <div class="confidence-info">
+                                <span>Prediction Confidence</span>
+                                <span class="confidence-number" id="confidenceNumber">98.45%</span>
+                            </div>
+                            <div class="progress-bar-track">
+                                <div class="progress-bar-fill" id="confidenceBar" style="width: 98.45%;"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Symptoms & Recommended Remedies -->
+                    <div class="info-grid">
+                        <div class="info-box box-symptoms">
+                            <h4><i data-lucide="alert-circle"></i> Key Symptoms</h4>
+                            <ul id="symptomsList">
+                                <li>Large irregular water-soaked spots on leaves.</li>
+                                <li>White fuzzy mold spores under moist conditions.</li>
+                            </ul>
+                        </div>
+
+                        <div class="info-box box-treatment">
+                            <h4><i data-lucide="shield-check"></i> Treatment & Remedies</h4>
+                            <p id="treatmentText">Apply preventative copper fungicides immediately. Destroy heavily infected vines.</p>
+                        </div>
+                    </div>
+
+                    <!-- Top 5 Probability Breakdown Chart -->
+                    <div class="breakdown-card">
+                        <div class="breakdown-header">
+                            <h4><i data-lucide="bar-chart-3"></i> Top 5 Class Probabilities</h4>
+                            <button type="button" class="btn-toggle-all" id="btnToggleAll">
+                                Show All 39 Classes <i data-lucide="chevron-down"></i>
+                            </button>
+                        </div>
+
+                        <div class="probability-list" id="top5List">
+                            <!-- Populated dynamically via JS -->
+                        </div>
+
+                        <!-- Complete 39 Class Toggle Container -->
+                        <div class="all-classes-wrapper hidden" id="allClassesWrapper">
+                            <div class="all-classes-list" id="allClassesList">
+                                <!-- Populated dynamically -->
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Technical Execution Details -->
+                    <div class="tech-specs-card">
+                        <h4><i data-lucide="terminal"></i> Inference Performance Specs</h4>
+                        <div class="specs-grid">
+                            <div class="spec-item">
+                                <span class="spec-label">Inference Latency</span>
+                                <span class="spec-val" id="specLatency">14.2 ms</span>
+                            </div>
+                            <div class="spec-item">
+                                <span class="spec-label">Model Engine</span>
+                                <span class="spec-val">MobileNetV2 (Keras 3)</span>
+                            </div>
+                            <div class="spec-item">
+                                <span class="spec-label">Input Tensor</span>
+                                <span class="spec-val">[1, 160, 160, 3]</span>
+                            </div>
+                            <div class="spec-item">
+                                <span class="spec-label">Output Nodes</span>
+                                <span class="spec-val">39 (Sigmoid)</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <!-- Footer -->
+        <footer class="footer">
+            <p>FloraScan AI — Powered by TensorFlow, Keras 3 & MobileNetV2 Architecture</p>
+        </footer>
+    </div>
+
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+    <script>
+        lucide.createIcons();
+    </script>
+</body>
+</html>
