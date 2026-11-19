@@ -271,7 +271,7 @@ All project objectives—including high classification accuracy, sub-50 ms execu
 
 ---
 
-**Student Name(s):** ______________________________  
-**Roll No(s).:** ______________________________  
-**Programme / Semester:** __________________________  
-**Submission Date:** __________________________  
+**Student Name(s):** Rutvik Bhanderi 
+**Roll No(s).:** 92600567025  
+**Programme / Semester:** MSc Data Science / Semister 1st 
+**Submission Date:** 19/11/2026  
